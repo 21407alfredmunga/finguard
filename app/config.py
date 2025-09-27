@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     daraja_base_url: str = "https://sandbox.safaricom.co.ke"
     daraja_webhook_secret: str
     
+    # LLM Configuration
+    gemini_api_key: str
+    
     # CORS Configuration
     cors_origins: List[str] = [
         "http://localhost:3000",

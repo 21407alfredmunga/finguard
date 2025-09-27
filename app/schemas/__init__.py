@@ -7,6 +7,7 @@ from .auth import *
 from .user import *
 from .account import *
 from .transaction import *
+from .invoice import *
 
 __all__ = [
     # Auth schemas
@@ -33,4 +34,15 @@ __all__ = [
     "TransactionResponse",
     "DarajaCallbackPayload",
     "TransactionFilter",
+    
+    # Invoice schemas
+    "InvoiceSchema",
+    "InvoiceItem",
+    "FreeTextInvoiceRequest",
+    "StructuredInvoiceRequest", 
+    "InvoiceResponse",
+    "InvoiceListResponse",
+    "InvoiceReconcileRequest",
+    "InvoiceReconcileResponse",
+    "LLMInvoiceGenerationError",
 ]

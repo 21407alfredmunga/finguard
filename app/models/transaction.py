@@ -166,6 +166,11 @@ class Transaction(Base):
         back_populates="transactions"
     )
     
+    matched_invoice = relationship(
+        "Invoice",
+        back_populates="matched_transaction"
+    )
+    
     # Database indexes for performance
     __table_args__ = (
         Index('idx_transactions_account_time', 'account_id', 'transaction_time'),

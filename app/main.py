@@ -6,6 +6,7 @@ Entry point for the AI-powered financial assistant for Kenyan SMEs
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
 import sys
@@ -13,7 +14,7 @@ from datetime import datetime
 
 from .config import settings
 from .db import create_tables
-from .api import auth, daraja, transactions
+from .api import auth, daraja, transactions, invoices
 
 # Configure logging
 logging.basicConfig(
@@ -151,6 +152,14 @@ async def root():
 app.include_router(auth.router, prefix="/api")
 app.include_router(daraja.router, prefix="/api")  
 app.include_router(transactions.router, prefix="/api")
+app.include_router(invoices.router)
+
+# Static file serving for PDFs
+try:
+    app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+    logger.info("Static file serving mounted at /storage")
+except Exception as e:
+    logger.warning(f"Failed to mount static files: {e}")
 
 
 # Middleware for request logging

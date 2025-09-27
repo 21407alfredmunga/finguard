@@ -112,6 +112,14 @@ class Account(Base):
         order_by="Transaction.timestamp.desc()"  # Order by most recent first
     )
     
+    invoices = relationship(
+        "Invoice",
+        back_populates="account",
+        cascade="all, delete-orphan",
+        lazy="dynamic",
+        order_by="Invoice.created_at.desc()"
+    )
+    
     def __repr__(self) -> str:
         return f"<Account(id={self.id}, business_name={self.business_name})>"
     
