@@ -6,11 +6,11 @@ Defines business accounts/companies that users can manage
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
 
 from ..db import Base
+from .types import GUID
 
 
 class Currency(str, enum.Enum):
@@ -33,7 +33,7 @@ class Account(Base):
     
     # Primary key
     id = Column(
-        UUID(as_uuid=True),
+        GUID(),
         primary_key=True,
         default=uuid.uuid4,
         comment="Unique account identifier"
@@ -41,7 +41,7 @@ class Account(Base):
     
     # Foreign key to user (account owner)
     user_id = Column(
-        UUID(as_uuid=True),
+        GUID(),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -109,7 +109,7 @@ class Account(Base):
         back_populates="account",
         cascade="all, delete-orphan",
         lazy="dynamic",
-        order_by="Transaction.timestamp.desc()"  # Order by most recent first
+        order_by="Transaction.transaction_time.desc()"  # Order by most recent first
     )
     
     invoices = relationship(

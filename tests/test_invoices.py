@@ -430,7 +430,7 @@ class TestInvoiceReconciliation:
         matching_txns = db_session.query(Transaction).filter(
             Transaction.account_id == invoice.account_id,
             Transaction.amount.between(min_amount, max_amount),
-            Transaction.timestamp.between(start_date, end_date),
+            Transaction.transaction_time.between(start_date, end_date),
             Transaction.status == "completed"
         ).all()
         

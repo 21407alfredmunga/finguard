@@ -6,12 +6,12 @@ Defines M-Pesa transaction records from Daraja API callbacks
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import Column, String, DateTime, ForeignKey, Numeric, Enum, Index
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, DateTime, ForeignKey, Numeric, Enum, Index, JSON
 from sqlalchemy.orm import relationship
 import enum
 
 from ..db import Base
+from .types import GUID
 
 
 class TransactionType(str, enum.Enum):
@@ -43,7 +43,7 @@ class Transaction(Base):
     
     # Primary key
     id = Column(
-        UUID(as_uuid=True),
+        GUID(),
         primary_key=True,
         default=uuid.uuid4,
         comment="Internal transaction identifier"
@@ -51,7 +51,7 @@ class Transaction(Base):
     
     # Foreign key to account
     account_id = Column(
-        UUID(as_uuid=True),
+        GUID(),
         ForeignKey("accounts.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -116,7 +116,7 @@ class Transaction(Base):
     
     # Raw Data Storage (for reprocessing and debugging)
     raw_payload = Column(
-        JSONB,
+        JSON,
         nullable=False,
         comment="Complete raw JSON payload from Daraja callback"
     )

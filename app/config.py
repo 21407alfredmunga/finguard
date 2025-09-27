@@ -5,7 +5,8 @@ Handles environment variables and application settings
 
 from functools import lru_cache
 from typing import List, Optional
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
 import os
 from pathlib import Path
 
@@ -50,31 +51,35 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
     
-    @validator("cors_origins", pre=True)
+    @field_validator("cors_origins", mode="before")
+    @classmethod
     def parse_cors_origins(cls, v):
         """Parse CORS origins from string or list"""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
         return v
     
-    @validator("database_url", pre=True)
+    @field_validator("database_url", mode="before")
+    @classmethod
     def validate_database_url(cls, v):
         """Ensure database URL is properly formatted"""
         if not v:
             raise ValueError("DATABASE_URL is required")
         return v
     
-    @validator("jwt_secret_key", pre=True)
+    @field_validator("jwt_secret_key", mode="before")
+    @classmethod
     def validate_jwt_secret(cls, v):
         """Ensure JWT secret key is secure"""
         if not v or len(v) < 32:
             raise ValueError("JWT_SECRET_KEY must be at least 32 characters long")
         return v
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False
+    }
 
 
 @lru_cache()

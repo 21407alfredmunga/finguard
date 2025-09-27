@@ -419,13 +419,13 @@ def reconcile_invoice(
             matching_transactions = db.query(Transaction).filter(
                 Transaction.account_id == invoice.account_id,
                 Transaction.amount.between(min_amount, max_amount),
-                Transaction.timestamp.between(start_date, end_date),
+                Transaction.transaction_time.between(start_date, end_date),
                 Transaction.matched_invoice_id.is_(None),  # Not already reconciled
                 Transaction.status == "completed"
             ).order_by(
                 # Prefer transactions closer to exact amount and date
                 func.abs(Transaction.amount - invoice.total),
-                Transaction.timestamp.desc()
+                Transaction.transaction_time.desc()
             ).all()
             
             if not matching_transactions:

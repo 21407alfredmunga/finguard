@@ -5,12 +5,12 @@ Defines the users table structure and relationships
 
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Enum, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Enum, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 import enum
 
 from ..db import Base
+from .types import GUID
 
 
 class UserRole(str, enum.Enum):
@@ -31,7 +31,7 @@ class User(Base):
     
     # Primary key - using UUID for better security and scalability
     id = Column(
-        UUID(as_uuid=True), 
+        GUID(), 
         primary_key=True, 
         default=uuid.uuid4,
         comment="Unique user identifier"
@@ -134,13 +134,14 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
     
     id = Column(
-        UUID(as_uuid=True),
+        GUID(),
         primary_key=True,
         default=uuid.uuid4
     )
     
     user_id = Column(
-        UUID(as_uuid=True),
+        GUID(),
+        ForeignKey("users.id"),
         nullable=True,  # Can be null for failed login attempts
         comment="User who performed the action"
     )

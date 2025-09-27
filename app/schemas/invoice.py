@@ -11,8 +11,7 @@ from typing import List, Optional
 from enum import Enum
 import uuid
 
-from pydantic import BaseModel, Field, validator, ConfigDict
-from pydantic_core import ValidationError
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class InvoiceStatusEnum(str, Enum):
@@ -33,11 +32,12 @@ class InvoiceItem(BaseModel):
     unit_price: float = Field(..., gt=0, description="Price per unit in KES")
     subtotal: float = Field(..., gt=0, description="Line item subtotal (qty * unit_price)")
     
-    @validator('subtotal')
-    def validate_subtotal(cls, v, values):
+    @field_validator('subtotal')
+    @classmethod
+    def validate_subtotal(cls, v, info):
         """Ensure subtotal matches quantity * unit_price."""
-        if 'quantity' in values and 'unit_price' in values:
-            expected = values['quantity'] * values['unit_price']
+        if info.data and 'quantity' in info.data and 'unit_price' in info.data:
+            expected = info.data['quantity'] * info.data['unit_price']
             if abs(v - expected) > 0.01:  # Allow small floating point differences
                 raise ValueError(f"Subtotal {v} doesn't match quantity * unit_price = {expected}")
         return v
@@ -50,7 +50,7 @@ class InvoiceSchema(BaseModel):
     
     invoice_number: str = Field(..., min_length=1, max_length=50, description="Unique invoice number")
     client_name: str = Field(..., min_length=1, max_length=255, description="Client/customer name")
-    client_phone: str = Field(..., regex=r"^254[0-9]{9}$", description="Client phone number (254XXXXXXXXX)")
+    client_phone: str = Field(..., pattern=r"^254[0-9]{9}$", description="Client phone number (254XXXXXXXXX)")
     
     items: List[InvoiceItem] = Field(..., min_items=1, description="Invoice line items")
     
@@ -61,27 +61,30 @@ class InvoiceSchema(BaseModel):
     due_date: datetime = Field(..., description="Invoice due date and time")
     notes: Optional[str] = Field(None, max_length=1000, description="Additional invoice notes")
     
-    @validator('due_date')
+    @field_validator('due_date')
+    @classmethod
     def validate_due_date(cls, v):
         """Ensure due date is not in the past."""
         if v.date() < date.today():
             raise ValueError("Due date cannot be in the past")
         return v
     
-    @validator('total')
-    def validate_total(cls, v, values):
+    @field_validator('total')
+    @classmethod
+    def validate_total(cls, v, info):
         """Ensure total matches subtotal + tax."""
-        if 'subtotal' in values and 'tax' in values:
-            expected = values['subtotal'] + values['tax']
+        if info.data and 'subtotal' in info.data and 'tax' in info.data:
+            expected = info.data['subtotal'] + info.data['tax']
             if abs(v - expected) > 0.01:
                 raise ValueError(f"Total {v} doesn't match subtotal + tax = {expected}")
         return v
     
-    @validator('subtotal')
-    def validate_subtotal_against_items(cls, v, values):
+    @field_validator('subtotal')
+    @classmethod
+    def validate_subtotal_against_items(cls, v, info):
         """Ensure subtotal matches sum of item subtotals."""
-        if 'items' in values:
-            expected = sum(item.subtotal for item in values['items'])
+        if info.data and 'items' in info.data:
+            expected = sum(item.subtotal for item in info.data['items'])
             if abs(v - expected) > 0.01:
                 raise ValueError(f"Subtotal {v} doesn't match sum of items = {expected}")
         return v
@@ -100,12 +103,13 @@ class FreeTextInvoiceRequest(BaseModel):
     # Optional overrides
     account_id: Optional[uuid.UUID] = Field(None, description="Override account ID")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "prompt": "Create invoice for KSh 12,000 to Mary Wanjiku (254712345678) for 10 bags of maize at KSh 1,200 each, due in 14 days"
             }
         }
+    )
 
 
 class StructuredInvoiceRequest(InvoiceSchema):
@@ -113,8 +117,8 @@ class StructuredInvoiceRequest(InvoiceSchema):
     
     account_id: Optional[uuid.UUID] = Field(None, description="Override account ID")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "invoice_number": "INV-001",
                 "client_name": "Mary Wanjiku",
@@ -134,6 +138,7 @@ class StructuredInvoiceRequest(InvoiceSchema):
                 "notes": "Payment via M-Pesa preferred"
             }
         }
+    )
 
 
 class InvoiceResponse(BaseModel):
@@ -189,13 +194,14 @@ class InvoiceReconcileRequest(BaseModel):
     invoice_id: uuid.UUID = Field(..., description="Invoice ID to reconcile")
     transaction_id: Optional[uuid.UUID] = Field(None, description="Specific transaction ID (optional for auto-match)")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "invoice_id": "123e4567-e89b-12d3-a456-426614174000",
                 "transaction_id": "789e0123-e45f-67g8-h901-234567890abc"
             }
         }
+    )
 
 
 class InvoiceReconcileResponse(BaseModel):
