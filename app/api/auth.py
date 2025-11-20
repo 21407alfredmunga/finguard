@@ -342,8 +342,8 @@ async def reset_password(
 
 @router.post("/logout", response_model=AuthResponse)
 async def logout(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
     background_tasks: BackgroundTasks,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> AuthResponse:
     """

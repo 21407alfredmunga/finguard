@@ -93,7 +93,7 @@ async def create_invoice_from_text(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
-):
+) -> InvoiceResponse:
     """
     Generate invoice from free-text description using LLM.
     
@@ -166,7 +166,7 @@ async def create_structured_invoice(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
-):
+) -> InvoiceResponse:
     """Create invoice from structured data (traditional form input)."""
     
     try:
@@ -472,7 +472,7 @@ def send_invoice(
     invoice_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
-):
+) -> dict:
     """
     Send invoice via SMS/email (stub implementation).
     
